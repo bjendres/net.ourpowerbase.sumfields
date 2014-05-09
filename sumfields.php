@@ -637,7 +637,7 @@ function sumfields_get_all_custom_fields() {
  **/
 function sumfields_initialize_custom_data() {
   if(FALSE === sumfields_create_custom_fields_and_table()) return FALSE;
-  sumfields_generate_data_based_on_current_data();
+  // DISABLED: sumfields_generate_data_based_on_current_data();
 }
 
 /**
