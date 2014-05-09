@@ -59,7 +59,7 @@ function sumfields_civicrm_enable() {
   // Note: CiviCRM reloads the triggers automatically.
   sumfields_initialize_user_settings();
   if(FALSE === sumfields_create_custom_fields_and_table()) return FALSE;
-  if(FALSE == sumfields_generate_data_based_on_current_data($session = NULL)) return FALSE;
+  //if(FALSE == sumfields_generate_data_based_on_current_data($session = NULL)) return FALSE;
   return _sumfields_civix_civicrm_enable();
 }
 

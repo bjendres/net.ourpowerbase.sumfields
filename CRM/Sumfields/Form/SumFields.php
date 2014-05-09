@@ -154,6 +154,7 @@ class CRM_Sumfields_Form_SumFields extends CRM_Core_Form {
       // Now we have add/remove fields 
       sumfields_alter_table($current_active_fields, $new_active_fields);
     }
+    /* DISABLED
     if(sumfields_generate_data_based_on_current_data($session)) {
       $session->setStatus(ts("All summary fields have been updated."));
       CRM_Core_DAO::triggerRebuild();
@@ -161,6 +162,7 @@ class CRM_Sumfields_Form_SumFields extends CRM_Core_Form {
     else {
       $session->setStatus(ts("There was an error re-generating the data."));
     }
+    */
     $session->replaceUserContext(CRM_Utils_System::url('civicrm/admin/setting/sumfields'));
   }
 
