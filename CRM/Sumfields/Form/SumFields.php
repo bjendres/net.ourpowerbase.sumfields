@@ -4,39 +4,94 @@ require_once 'CRM/Core/Form.php';
 
 class CRM_Sumfields_Form_SumFields extends CRM_Core_Form {
   function buildQuickForm() {
-    
-    
-
     $custom = sumfields_get_custom_field_definitions();
     $options = array();
+    $field_options = array();
     while(list($k,$v) = each($custom['fields'])) {
       $field_options[$k] = $v['label'];
     }
-    $this->addCheckBox(
-      'active_fields', 
-      ts('Active Fields'),
-      array_flip($field_options)
+    if(count($field_options) == 0) {
+      // This means neither CiviEvent or CiviContribute are enabled.
+      $session = CRM_Core_Session::singleton();
+      $session->setStatus(ts("Summary Fields is not particularly useful if
+        CiviContribute and CiviEvent are both disabled. Try enabling at least
+        one."));
+      return;
+    }
+
+    // Evaluate status of the triggers and report to the user.
+    if(sumfields_get_update_trigger('civicrm_contribution')) {
+      $contribution_table_trigger_status = 'Enabled';
+    }
+    else {
+      $contribution_table_trigger_status = 'Not Enabled';
+    }
+    $this->Assign(
+      'contribution_table_trigger_status', $contribution_table_trigger_status
     );
-    $this->addCheckBox(
-      'financial_type_ids', 
-      ts('Financial Types'),
-      array_flip(sumfields_get_all_financial_types())
+
+    if(sumfields_get_update_trigger('civicrm_participant')) {
+      $participant_table_trigger_status = 'Enabled';
+    }
+    else {
+      $participant_table_trigger_status = 'Not Enabled';
+    }
+    $this->Assign(
+      'participant_table_trigger_status', $participant_table_trigger_status
     );
+
+    // Add active fields
+    $name = 'active_fields';
+    $label = ts('Active Fields');
     $this->addCheckBox(
-      'membership_financial_type_ids', 
-      ts('Membership Financial Types'),
-      array_flip(sumfields_get_all_financial_types())
+      $name, $label, array_flip($field_options)
     );
-    $this->addCheckBox(
-      'event_type_ids', 
-      ts('Event Types'),
-      array_flip(sumfields_get_all_event_types())
-    );
-    $this->addCheckBox(
-      'participant_status_ids', 
-      ts('Participant Status'),
-      array_flip(sumfields_get_all_participant_status_types())
-    );
+    $this->addRule($name, ts('You must define at least one active field'), 'required');
+
+    if(sumfields_component_enabled('CiviMember')) {
+      $this->assign('sumfields_member', TRUE);
+      $name = 'membership_financial_type_ids';
+      $label = ts('Membership Financial Types');
+      $this->addCheckBox(
+        $name, $label, array_flip(sumfields_get_all_financial_types())
+      );
+      $this->addRule($name, ts('%1 is a required field.', array(1 => $label)), 'required');
+    }
+    if(sumfields_component_enabled('CiviContribute')) {
+      $this->assign('sumfields_contribute', TRUE);
+      $name = 'financial_type_ids';
+      $label = ts('Financial Types');
+      $this->addCheckBox(
+        $name, $label, array_flip(sumfields_get_all_financial_types())
+      );
+      $this->addRule($name, ts('%1 is a required field.', array(1 => $label)), 'required');
+    }
+    if(sumfields_component_enabled('CiviEvent')) {
+      $this->assign('sumfields_event', TRUE);
+      $name = 'event_type_ids';
+      $label = ts('Event Types');
+      $this->addCheckBox(
+        $name, $label, array_flip(sumfields_get_all_event_types())
+      );
+      $this->addRule($name, ts('%1 is a required field.', array(1 => $label)), 'required');
+
+      $label = ts('Participant Status (attended)');
+      $name = 'participant_status_ids';
+      $this->addCheckBox(
+        $name, 
+        $label,
+        array_flip(sumfields_get_all_participant_status_types())
+      );
+      $this->addRule($name, ts('%1 is a required field.', array(1 => $label)), 'required');
+      $label = ts('Participant Status (did not attend)');
+      $name = 'participant_noshow_status_ids';
+      $this->addCheckBox(
+        $name,
+        $label,
+        array_flip(sumfields_get_all_participant_status_types())
+      );
+      $this->addRule($name, ts('%1 is a required field.', array(1 => $label)), 'required');
+    }
 
     $this->addButtons(array(
           array(
@@ -60,6 +115,7 @@ class CRM_Sumfields_Form_SumFields extends CRM_Core_Form {
     $defaults['membership_financial_type_ids'] = $this->array_to_options(sumfields_get_setting('membership_financial_type_ids', array()));
     $defaults['event_type_ids'] = $this->array_to_options(sumfields_get_setting('event_type_ids', array()));
     $defaults['participant_status_ids'] = $this->array_to_options(sumfields_get_setting('participant_status_ids', array()));
+    $defaults['participant_noshow_status_ids'] = $this->array_to_options(sumfields_get_setting('participant_noshow_status_ids', array()));
     return $defaults;
   }
 
@@ -89,15 +145,22 @@ class CRM_Sumfields_Form_SumFields extends CRM_Core_Form {
     if(array_key_exists('participant_status_ids', $values)) {
       sumfields_save_setting('participant_status_ids', $this->options_to_array($values['participant_status_ids']));
     }
+    if(array_key_exists('participant_noshow_status_ids', $values)) {
+      sumfields_save_setting('participant_noshow_status_ids', $this->options_to_array($values['participant_noshow_status_ids']));
+    }
     $session = CRM_Core_Session::singleton();
 
     if($active_fields_have_changed) {
       // Now we have add/remove fields 
       sumfields_alter_table($current_active_fields, $new_active_fields);
     }
-    // DISABLED: sumfields_generate_data_based_on_current_data();
-    $session->setStatus(ts("All summary fields have been updated."));
-    CRM_Core_DAO::triggerRebuild();
+    if(sumfields_generate_data_based_on_current_data($session)) {
+      $session->setStatus(ts("All summary fields have been updated."));
+      CRM_Core_DAO::triggerRebuild();
+    }
+    else {
+      $session->setStatus(ts("There was an error re-generating the data."));
+    }
     $session->replaceUserContext(CRM_Utils_System::url('civicrm/admin/setting/sumfields'));
   }
 
