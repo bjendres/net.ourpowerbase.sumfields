@@ -63,6 +63,7 @@ $custom = array(
       'trigger_sql' => '(SELECT IF(SUM(total_amount) IS NULL, 0, SUM(total_amount))
       FROM civicrm_contribution t1 WHERE t1.contact_id = NEW.contact_id
       AND t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(SUM(total_amount),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -81,6 +82,7 @@ $custom = array(
       FROM civicrm_contribution t1 WHERE CAST(receive_date AS DATE) BETWEEN "%current_fiscal_year_begin"
       AND "%current_fiscal_year_end" AND t1.contact_id = NEW.contact_id AND
       t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(SUM(IF(contribution.receive_date BETWEEN DATE("%current_fiscal_year_begin") AND DATE("%current_fiscal_year_end"), total_amount, 0.00)),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -101,6 +103,7 @@ $custom = array(
       WHERE CAST(receive_date AS DATE) BETWEEN "%current_fiscal_year_begin" AND
       "%current_fiscal_year_end" AND t1.contact_id = NEW.contact_id AND
       t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(SUM(IF(contribution.receive_date BETWEEN DATE("%current_fiscal_year_begin") AND DATE("%current_fiscal_year_end") AND financial_type.is_deductible = 1, total_amount, 0.00)),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -119,6 +122,7 @@ $custom = array(
       FROM civicrm_contribution t1 WHERE CAST(receive_date AS DATE) BETWEEN "%last_fiscal_year_begin"
       AND "%last_fiscal_year_end" AND t1.contact_id = NEW.contact_id AND
       t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(SUM(IF(contribution.receive_date BETWEEN DATE("%last_fiscal_year_begin") AND DATE("%last_fiscal_year_end"), total_amount, 0.00)),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -139,6 +143,7 @@ $custom = array(
       WHERE CAST(receive_date AS DATE) BETWEEN "%last_fiscal_year_begin" AND
       "%last_fiscal_year_end" AND t1.contact_id = NEW.contact_id AND
       t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(SUM(IF(contribution.receive_date BETWEEN DATE("%last_fiscal_year_begin") AND DATE("%last_fiscal_year_end") AND financial_type.is_deductible = 1, total_amount, 0.00)),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -157,6 +162,7 @@ $custom = array(
       FROM civicrm_contribution t1 WHERE CAST(receive_date AS DATE) BETWEEN "%year_before_last_fiscal_year_begin"
       AND "%year_before_last_fiscal_year_end" AND t1.contact_id = NEW.contact_id AND
       t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(SUM(IF(contribution.receive_date BETWEEN DATE("%year_before_last_fiscal_year_begin") AND DATE("%year_before_last_fiscal_year_end"), total_amount, 0.00)),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -177,6 +183,7 @@ $custom = array(
       WHERE CAST(receive_date AS DATE) BETWEEN "%year_before_last_fiscal_year_begin" AND
       "%year_before_last_fiscal_year_end" AND t1.contact_id = NEW.contact_id AND
       t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(SUM(IF(contribution.receive_date BETWEEN DATE("%year_before_last_fiscal_year_begin") AND DATE("%year_before_last_fiscal_year_end") AND financial_type.is_deductible = 1, total_amount, 0.00)),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -195,6 +202,7 @@ $custom = array(
       FROM civicrm_contribution t1 WHERE t1.contact_id = NEW.contact_id
       AND t1.contribution_status_id = 1  AND t1.financial_type_id IN
       (%financial_type_ids) ORDER BY t1.receive_date DESC LIMIT 1)',
+      'generate_sql' => '0',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -212,6 +220,7 @@ $custom = array(
       'trigger_sql' => '(SELECT MAX(receive_date) FROM civicrm_contribution t1
       WHERE t1.contact_id = NEW.contact_id AND t1.contribution_status_id = 1 AND
       t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(MAX(receive_date),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -229,6 +238,7 @@ $custom = array(
       'trigger_sql' => '(SELECT MIN(receive_date) FROM civicrm_contribution t1
       WHERE t1.contact_id = NEW.contact_id AND t1.contribution_status_id = 1 AND
       t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(MIN(receive_date),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 
@@ -247,6 +257,7 @@ $custom = array(
       'trigger_sql' => '(SELECT COALESCE(MAX(total_amount), 0)
       FROM civicrm_contribution t1 WHERE t1.contact_id = NEW.contact_id AND
       t1.contribution_status_id = 1 AND t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COALESCE(MAX(total_amount),0)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -264,6 +275,7 @@ $custom = array(
       'trigger_sql' => '(SELECT COALESCE(COUNT(id), 0) FROM civicrm_contribution t1
       WHERE t1.contact_id = NEW.contact_id AND t1.contribution_status_id = 1 AND
       t1.financial_type_id IN (%financial_type_ids))',
+      'generate_sql' => 'COUNT(total_amount)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
@@ -283,6 +295,7 @@ $custom = array(
       IN (%financial_type_ids) AND t0.contribution_status_id = 1) FROM civicrm_contribution t1
       WHERE t1.contact_id = NEW.contact_id AND t1.financial_type_id IN (%financial_type_ids)
       AND t1.contribution_status_id = 1)',
+      'generate_sql' => 'COALESCE(SUM(total_amount),0) / COUNT(DISTINCT SUBSTR(receive_date, 1, 4))',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),

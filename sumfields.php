@@ -451,11 +451,16 @@ function sumfields_generate_data_based_on_current_data($session = NULL) {
     if(!in_array($base_column_name, $active_fields)) continue;
     $table = $custom['fields'][$base_column_name]['trigger_table'];
 
-    $trigger = $custom['fields'][$base_column_name]['trigger_sql'];
-    // We replace NEW.contact_id with t2.contact_id to reflect the difference
-    // between the trigger sql statement and the initial sql statement
-    // to load the data.
-    $trigger = str_replace('NEW.contact_id', 't2.contact_id', $trigger);
+    // OLD QUERY COMPILATION CODE
+    //$trigger = $custom['fields'][$base_column_name]['trigger_sql'];
+    //// We replace NEW.contact_id with t2.contact_id to reflect the difference
+    //// between the trigger sql statement and the initial sql statement
+    //// to load the data.
+    // $trigger = str_replace('NEW.contact_id', 't2.contact_id', $trigger);
+
+    // NEW QUERY COMPILATION CODE
+    $trigger = $custom['fields'][$base_column_name]['generate_sql'];
+    
     if(FALSE === $trigger = sumfields_sql_rewrite($trigger)) {
       $msg = sprintf(ts("Failed to rewrite sql for %s field."), $base_column_name);
       $session->setStatus($msg);
@@ -473,11 +478,19 @@ function sumfields_generate_data_based_on_current_data($session = NULL) {
 
   if(!is_null($contribution_sql)) {
     $contribution_sql .= implode(",\n", $contribution_sql_parts);
-    $contribution_sql .= ' FROM `civicrm_contribution` AS t2 ';
-    // Add relationship to contact to avoid sql failures due to incorrect
-    // existing data + foreign key constraints
-    $contribution_sql .= "JOIN civicrm_contact AS c ON t2.contact_id = c.id ";
-    $contribution_sql .= ' WHERE t2.contribution_status_id = 1';
+
+    // OLD QUERY COMPILATION CODE
+    //$contribution_sql .= ' FROM `civicrm_contribution` AS t2 ';
+    //// Add relationship to contact to avoid sql failures due to incorrect
+    //// existing data + foreign key constraints
+    //$contribution_sql .= "JOIN civicrm_contact AS c ON t2.contact_id = c.id ";
+    //$contribution_sql .= ' WHERE t2.contribution_status_id = 1';
+
+    // NEW QUERY COMPILATION CODE
+    $contribution_sql .= ' FROM `civicrm_contribution` AS contribution ';
+    $contribution_sql .= ' JOIN `civicrm_financial_type` AS financial_type ON financial_type.id = contribution.financial_type_id ';
+    $contribution_sql .= ' WHERE contribution_status_id = 1';
+    
     $contribution_sql .= ' GROUP BY contact_id';
     CRM_Core_DAO::executeQuery($contribution_sql);
     // echo "$contribution_sql\n\n";
