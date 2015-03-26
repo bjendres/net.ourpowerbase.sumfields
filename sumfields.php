@@ -490,6 +490,7 @@ function sumfields_generate_data_based_on_current_data($session = NULL) {
     $contribution_sql .= ' FROM `civicrm_contribution` AS contribution ';
     $contribution_sql .= ' JOIN `civicrm_financial_type` AS financial_type ON financial_type.id = contribution.financial_type_id ';
     $contribution_sql .= ' WHERE contribution_status_id = 1';
+    $contribution_sql .= sumfields_sql_rewrite(' AND financial_type_id IN (%financial_type_ids)');
     
     $contribution_sql .= ' GROUP BY contact_id';
     CRM_Core_DAO::executeQuery($contribution_sql);

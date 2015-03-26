@@ -202,7 +202,10 @@ $custom = array(
       FROM civicrm_contribution t1 WHERE t1.contact_id = NEW.contact_id
       AND t1.contribution_status_id = 1  AND t1.financial_type_id IN
       (%financial_type_ids) ORDER BY t1.receive_date DESC LIMIT 1)',
-      'generate_sql' => '0',
+      'generate_sql' => '(SELECT COALESCE(total_amount,0)
+      FROM civicrm_contribution t1 WHERE t1.contact_id = contribution.contact_id
+      AND t1.contribution_status_id = 1  AND t1.financial_type_id IN
+      (%financial_type_ids) ORDER BY t1.receive_date DESC LIMIT 1)',
       'trigger_table' => 'civicrm_contribution',
       'display' => 'fundraising',
 		),
