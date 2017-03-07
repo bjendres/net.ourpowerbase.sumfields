@@ -53,7 +53,7 @@
       <td>{$form.financial_type_ids.html}</td>
     </tr> 
   {/if}
-  {if $sumfields_event && $sumfields_member}
+  {if $sumfields_member}
     <tr>
       <td colspan="2" class="description">{ts}Please indicate the financial types you would like included when calculating membership payment related summary fields.{/ts}</td>
     </tr>
